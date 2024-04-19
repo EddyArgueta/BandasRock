@@ -29,6 +29,13 @@ android {
     namespace "com.bandasrock"
     compileSdkVersion flutter.compileSdkVersion
     ndkVersion flutter.ndkVersion
+    compileSdkVersion 31
+    buildToolsVersion "31.0.0"
+
+    defaultConfig {
+        ...
+        multiDexEnabled true
+    }
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -67,4 +74,6 @@ flutter {
     source '../..'
 }
 
-dependencies {}
+dependencies {
+    implementation 'androidx.multidex:multidex:2.0.1'
+}
