@@ -14,13 +14,19 @@ class PantallaListadoBandas extends StatelessWidget {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
-          final bandas = snapshot.data!.docs;
+          final bandas = snapshot.data!.docs.where((banda) =>
+              banda['NombreBanda'] != null &&
+              banda['NombreAlbum'] != null &&
+              banda['AñoLanzamiento'] != null && 
+              banda['CantidadVotos'] != null 
+          ).toList();
+          
           return ListView.builder(
             itemCount: bandas.length,
             itemBuilder: (BuildContext context, int index) {
               var banda = bandas[index];
               return Dismissible(
-                key: Key(banda.id), // Usa la ID del documento como clave
+                key: Key(banda.id),
                 onDismissed: (direction) {
                   eliminarBanda(banda.id);
                 },
@@ -66,3 +72,4 @@ class PantallaListadoBandas extends StatelessWidget {
     await bandas.doc(id).delete();
   }
 }
+

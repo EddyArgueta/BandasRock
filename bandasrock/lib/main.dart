@@ -16,6 +16,8 @@ class MyApp extends StatelessWidget {
       title: 'Votaciones de Bandas de Rock',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        useMaterial3: true,
         primarySwatch: Colors.blue,
       ),
       initialRoute: '/', 
