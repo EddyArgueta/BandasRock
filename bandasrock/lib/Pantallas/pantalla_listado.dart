@@ -19,16 +19,27 @@ class PantallaListadoBandas extends StatelessWidget {
             itemCount: bandas.length,
             itemBuilder: (BuildContext context, int index) {
               var banda = bandas[index];
-              return ListTile(
-                title: Text(banda['nombre']),
-                subtitle: Text('Álbum: ${banda['album']} - Año: ${banda['year']}'),
-                trailing: ElevatedButton(
-                  onPressed: () {
-                    // Aquí puedes agregar la lógica para votar por la banda
-                    // votarBanda(banda.id);
-                  },
-                  child: Text('Votar (${banda['votos']})'),
-                ),           
+              return Dismissible(
+                key: Key(banda.id), // Usa la ID del documento como clave
+                onDismissed: (direction) {
+                  eliminarBanda(banda.id);
+                },
+                background: Container(
+                  color: Colors.red,
+                  alignment: Alignment.centerRight,
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: const Icon(Icons.delete, color: Colors.white),
+                ),
+                child: ListTile(
+                  title: Text(banda['NombreBanda']),
+                  subtitle: Text('Álbum: ${banda['NombreAlbum']} - Año: ${banda['AñoLanzamiento']}'),
+                  trailing: ElevatedButton(
+                    onPressed: () {
+                      votarBanda(banda.id);
+                    },
+                    child: Text('Votar (${banda['CantidadVotos']})'),
+                  ),           
+                ),
               );
             },
           );
@@ -42,14 +53,16 @@ class PantallaListadoBandas extends StatelessWidget {
       ),
     );
   }
-}
 
-// La función votarBanda y otras funciones relacionadas se pueden agregar según sea necesario
+  void votarBanda(String id) async {
+    CollectionReference bandas = FirebaseFirestore.instance.collection('bandas');
+    DocumentSnapshot banda = await bandas.doc(id).get();
+    int votosActuales = banda['CantidadVotos'];
+    await bandas.doc(id).update({'CantidadVotos': votosActuales + 1});
+  }
 
-
-void votarBanda(String id) async {
-  CollectionReference bandas = FirebaseFirestore.instance.collection('bandas');
-  DocumentSnapshot banda = await bandas.doc(id).get();
-  int votosActuales = banda['votos'];
-  await bandas.doc(id).update({'votos': votosActuales + 1});
+  void eliminarBanda(String id) async {
+    CollectionReference bandas = FirebaseFirestore.instance.collection('bandas');
+    await bandas.doc(id).delete();
+  }
 }

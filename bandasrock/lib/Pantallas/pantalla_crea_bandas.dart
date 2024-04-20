@@ -1,6 +1,8 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 class PantallaCreaBandas extends StatefulWidget {
   @override
@@ -11,8 +13,28 @@ class _PantallaCreaBandasState extends State<PantallaCreaBandas> {
   TextEditingController nombreController = TextEditingController();
   TextEditingController albumController = TextEditingController();
   TextEditingController yearController = TextEditingController();
+  File? _imageFile; 
 
-  @override  
+  Future<void> _getImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _imageFile = File(pickedFile.path);
+      });
+    }
+  }
+
+  Future<void> _uploadImage(String id) async {
+    if (_imageFile != null) {
+      Reference ref = FirebaseStorage.instance.ref().child('bandas/$id/imagen');
+      await ref.putFile(_imageFile!);
+      String imageUrl = await ref.getDownloadURL();
+      await FirebaseFirestore.instance.collection('colecciones').doc(id).update({'imagenUrl': imageUrl});
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -23,33 +45,80 @@ class _PantallaCreaBandasState extends State<PantallaCreaBandas> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            TextField(
+            TextFormField(
               controller: nombreController,
-              decoration: const InputDecoration(labelText: 'Nombre de la banda'),
+              maxLength: 30,
+              validator: (value) {
+                if (value!.isEmpty) {
+                  return 'El nombre es obligatorio';
+                }
+                return null;
+              },
+              keyboardType: TextInputType.name,
+              decoration: const InputDecoration(
+                labelText: 'Nombre de la Banda',
+                prefixIcon: Icon(Icons.group_outlined),
+                border: OutlineInputBorder(),
+              ),
             ),
-            TextField(
-              controller: albumController,
-              decoration: const InputDecoration(labelText: 'Nombre del álbum'),
-            ),
-            TextField(
-              controller: yearController,
-              decoration: const InputDecoration(labelText: 'Año de lanzamiento'),
-              keyboardType: TextInputType.number,
-            ),
-            const SizedBox(height: 20),
 
+            const SizedBox(height: 20),     
+            TextFormField(
+              controller: albumController,
+              maxLength: 30,
+              validator: (value) {
+                if (value!.isEmpty) {
+                  return 'El nombre del Album es obligatorio';
+                }
+                return null;
+              },
+              keyboardType: TextInputType.name,
+              decoration: const InputDecoration(
+                labelText: 'Nombre del Album',
+                prefixIcon: Icon(Icons.queue_music),
+                border: OutlineInputBorder(),
+              ),
+            ),
+
+            const SizedBox(height:20),
+            TextFormField(
+              controller: yearController,
+              maxLength: 10,
+              validator: (value) {
+                if (value!.isEmpty) {
+                  return 'El Año de Lanzamiento es obligatorio';
+                }
+                return null;
+              },
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: 'Año de Lanzamiento',
+                prefixIcon: Icon(Icons.calendar_month_rounded),
+                border: OutlineInputBorder(),
+              ),
+            ),
+
+            const SizedBox(height: 20),
             ElevatedButton(
-            onPressed: () {
-              guardarBanda(
-                nombreController.text,
-                albumController.text,
-                int.tryParse(yearController.text) ?? 0, // Intenta convertir el texto a entero, si falla, usa 0 como valor predeterminado
-                );
+              onPressed: () async {
+                CollectionReference bandas = FirebaseFirestore.instance.collection('colecciones');
+                DocumentReference docRef = await bandas.add({
+                  'NombreBanda': nombreController.text,
+                  'NombreAlbum': albumController.text,
+                  'AñoLanzamiento': int.tryParse(yearController.text) ?? 0,
+                  'CantidadVotos': 0,
+                });
+                await _uploadImage(docRef.id);
                 Navigator.pop(context);
               },
-            child: const Text('Guardar Banda'),
-          ),
+              child: const Text('Guardar Banda'),
+            ),
 
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _getImage,
+              child: const Text('Seleccionar Imagen'),
+            ),
           ],
         ),
       ),
@@ -61,9 +130,9 @@ class _PantallaCreaBandasState extends State<PantallaCreaBandas> {
 void guardarBanda(String nombre, String album, int year) async {
   CollectionReference bandas = FirebaseFirestore.instance.collection('colecciones');
   await bandas.add({
-    'nombre': nombre,
-    'album': album,
-    'year': year,
-    'votos': 0, // Inicialmente empezara en 0
+    'NombreBanda': nombre,
+    'NombreAlbum': album,
+    'AñoLanzamiento': year,
+    'CantidadVotos': 0, // Inicialmente empezara en 0
   });
 }
