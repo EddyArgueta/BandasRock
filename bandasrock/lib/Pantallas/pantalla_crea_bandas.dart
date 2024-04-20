@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
@@ -16,14 +15,23 @@ class _PantallaCreaBandasState extends State<PantallaCreaBandas> {
   TextEditingController yearController = TextEditingController();
   File? _imageFile;
 
-  Future<void> _getImage() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.image);
-    if (result != null) {
-      setState(() {
-        _imageFile = File(result.files.single.path!);
-      });
-    }
+ Future<String> subirFoto(String path) async {
+    // Referencia a la instancia de Firebase Storage
+    final storageRef = FirebaseStorage.instance.ref();
+
+    final imagen = File(path); // el archivo que voy a subir
+
+    //la referencia donde voy a guardar
+    final referenciaFotoPerfil =
+        storageRef.child("usuarios/imagenes/mi_foto.jpg");
+
+    final uploadTask = await referenciaFotoPerfil.putFile(imagen);
+
+    final url = await uploadTask.ref.getDownloadURL();
+
+    return url;
   }
+
 
   Future<void> _uploadImage(String id) async {
     if (_imageFile != null) {
@@ -33,7 +41,6 @@ class _PantallaCreaBandasState extends State<PantallaCreaBandas> {
       await FirebaseFirestore.instance.collection('colecciones').doc(id).update({'imagenUrl': imageUrl});
     }
   }
-  
 
   @override
   Widget build(BuildContext context) {
@@ -119,9 +126,20 @@ class _PantallaCreaBandasState extends State<PantallaCreaBandas> {
 
               const SizedBox(height: 20),
               ElevatedButton(
-                onPressed: _getImage,
-                child: const Text('Seleccionar Imagen'),
-              ),
+                  onPressed: () async {
+                    final ImagePicker picker = ImagePicker();
+
+                    final XFile? image =
+                        await picker.pickImage(source: ImageSource.camera);
+
+                    if (image == null) return;
+
+                    final url = await subirFoto(image.path);
+
+                    print(url);
+                    // image.path
+                  },
+                  child: const Text('Subir foto')),
             ],
           ),
         ),
