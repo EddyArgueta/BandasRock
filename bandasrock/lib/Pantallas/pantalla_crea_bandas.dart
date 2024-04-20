@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 class PantallaCreaBandas extends StatefulWidget {
   @override
@@ -36,13 +37,19 @@ class _PantallaCreaBandasState extends State<PantallaCreaBandas> {
               keyboardType: TextInputType.number,
             ),
             const SizedBox(height: 20),
+
             ElevatedButton(
-              onPressed: () {
-                //guardarBanda();
+            onPressed: () {
+              guardarBanda(
+                nombreController.text,
+                albumController.text,
+                int.tryParse(yearController.text) ?? 0, // Intenta convertir el texto a entero, si falla, usa 0 como valor predeterminado
+                );
                 Navigator.pop(context);
               },
-              child: const Text('Guardar Banda'),
-            ),
+            child: const Text('Guardar Banda'),
+          ),
+
           ],
         ),
       ),
@@ -52,7 +59,7 @@ class _PantallaCreaBandasState extends State<PantallaCreaBandas> {
 
 
 void guardarBanda(String nombre, String album, int year) async {
-  CollectionReference bandas = FirebaseFirestore.instance.collection('bandas');
+  CollectionReference bandas = FirebaseFirestore.instance.collection('colecciones');
   await bandas.add({
     'nombre': nombre,
     'album': album,

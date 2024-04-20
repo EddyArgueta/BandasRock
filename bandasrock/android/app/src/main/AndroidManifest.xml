@@ -2,7 +2,6 @@
     package="com.bandasrock">
     <application
         android:label="bandasrock"
-        android:name=".FlutterMultiDexApplication"
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"

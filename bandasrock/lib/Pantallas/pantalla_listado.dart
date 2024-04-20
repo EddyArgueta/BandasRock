@@ -6,13 +6,13 @@ class PantallaListadoBandas extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Listado de Bandas de Rock'),
+        title: const Text('Listado de Bandas de Rock'),
       ),
       body: StreamBuilder(
-        stream: FirebaseFirestore.instance.collection('bandas').snapshots(),
+        stream: FirebaseFirestore.instance.collection('colecciones').snapshots(),
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           }
           final bandas = snapshot.data!.docs;
           return ListView.builder(
@@ -24,7 +24,8 @@ class PantallaListadoBandas extends StatelessWidget {
                 subtitle: Text('Álbum: ${banda['album']} - Año: ${banda['year']}'),
                 trailing: ElevatedButton(
                   onPressed: () {
-                    votarBanda(banda.id);
+                    // Aquí puedes agregar la lógica para votar por la banda
+                    // votarBanda(banda.id);
                   },
                   child: Text('Votar (${banda['votos']})'),
                 ),           
@@ -42,6 +43,9 @@ class PantallaListadoBandas extends StatelessWidget {
     );
   }
 }
+
+// La función votarBanda y otras funciones relacionadas se pueden agregar según sea necesario
+
 
 void votarBanda(String id) async {
   CollectionReference bandas = FirebaseFirestore.instance.collection('bandas');
